@@ -23,7 +23,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart,
 
 // --- Black-Scholes Helper ---
 const calculateOptionPrice = (type, S, K, T, r, sigma) => {
-    if (!K || !S) return 0;
+    if (!K || !S || !sigma || isNaN(K) || isNaN(S) || isNaN(sigma)) return 0;
     const CND = (x) => {
         const a1 = 0.31938153, a2 = -0.356563782, a3 = 1.781477937;
         const a4 = -1.821255978, a5 = 1.330274429;
@@ -33,11 +33,18 @@ const calculateOptionPrice = (type, S, K, T, r, sigma) => {
         const val = t * (a1 * k + a2 * Math.pow(k, 2) + a3 * Math.pow(k, 3) + a4 * Math.pow(k, 4) + a5 * Math.pow(k, 5));
         return x >= 0 ? 1 - val : val;
     };
-    const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
-    const d2 = d1 - sigma * Math.sqrt(T);
-    return type === 'call'
-        ? S * CND(d1) - K * Math.exp(-r * T) * CND(d2)
-        : K * Math.exp(-r * T) * CND(-d2) - S * CND(-d1);
+
+    try {
+        const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+        if (!isFinite(d1)) return 0;
+        const d2 = d1 - sigma * Math.sqrt(T);
+        const price = type === 'call'
+            ? S * CND(d1) - K * Math.exp(-r * T) * CND(d2)
+            : K * Math.exp(-r * T) * CND(-d2) - S * CND(-d1);
+        return isNaN(price) ? 0 : price;
+    } catch (e) {
+        return 0;
+    }
 };
 import Dashboard from './components/Dashboard';
 import StressTest from './components/StressTest';
@@ -53,6 +60,9 @@ const ASSETS = [
     { id: 'BTC', name: 'Bitcoin' },
     { id: 'CASH', name: 'Cash (TWD)' }
 ];
+
+import { db } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 function App() {
     const [activeTab, setActiveTab] = useState('monitor');
@@ -106,13 +116,25 @@ function App() {
         }
     };
 
+    // Firebase: Load Portfolio
     const fetchPortfolio = async () => {
         try {
+            // First try fetching real-time data from backend to enrich prices
             const res = await fetch(`${API_URL}/api/portfolio?t=${Date.now()}`);
             if (res.ok) {
                 const json = await res.json();
                 setPortfolio(json);
             }
+
+            // Overwrite with Firebase Data if available (Sync)
+            // Ideally we should merge: Firebase stores shares/cost, Backend enriches price.
+            // For now, let's keep using backend for Portfolio as it calculates live PnL.
+            // But we should SAVE new positions to Backend (which saves to local JSON) OR Firebase.
+            // User requested Firebase to solve data loss. 
+            // Strategy: 
+            // 1. Settings (simOptions) -> Firebase (Critical)
+            // 2. Portfolio -> Backend (JSON) is fine if moved to HDD. 
+            // Let's focus on Settings first which was the main complaint.
         } catch (e) { console.error(e); }
     };
 
@@ -122,10 +144,10 @@ function App() {
             if (res.ok) {
                 const json = await res.json();
                 setOptionsData(json);
-                // Only set simOptions from optionsData if we don't have saved options (simOptions is null)
-                // or if we are not currently simulating, to avoid overwriting user changes on refresh
-                // BUT: logic here is tricky. If we just loaded from localStorage, simOptions is NOT null.
-                if (!simOptions) setSimOptions(json);
+                if (!simOptions) {
+                    // Try convert to default if nothing saved
+                    setSimOptions(json);
+                }
             }
         } catch (e) { console.error(e); }
     };
@@ -175,28 +197,56 @@ function App() {
         localStorage.setItem('isSimulating', isSimulating);
     }, [isSimulating]);
 
-    // Load Settings from Backend
+    // LOAD Settings from Firebase
     useEffect(() => {
-        fetch(`${API_URL}/api/settings`)
-            .then(res => res.json())
-            .then(data => {
-                // Only load if valid data exists
-                if (data && (data.weekly || data.index_price)) {
-                    setSimOptions(data);
+        const loadSettings = async () => {
+            try {
+                const docRef = doc(db, "settings", "user_default");
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    console.log("Loaded settings from Firebase:", docSnap.data());
+                    setSimOptions(docSnap.data());
+                } else {
+                    console.log("No settings found in Firebase, loading from Backend...");
+                    // Fallback to Backend API
+                    fetch(`${API_URL}/api/settings`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && (data.weekly || data.index_price)) {
+                                setSimOptions(data);
+                            }
+                        });
                 }
-            })
-            .catch(console.error);
+            } catch (e) {
+                console.error("Firebase Load Error:", e);
+                // Fallback on error
+                fetch(`${API_URL}/api/settings`)
+                    .then(res => res.json())
+                    .then(data => setSimOptions(data));
+            }
+        };
+        loadSettings();
     }, []);
 
-    // Save Settings to Backend (Debounced)
+    // SAVE Settings to Firebase (Debounced)
     useEffect(() => {
         if (!simOptions) return;
-        const timer = setTimeout(() => {
-            fetch(`${API_URL}/api/settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(simOptions)
-            }).catch(console.error);
+        const timer = setTimeout(async () => {
+            try {
+                // Save to Backend (Backup)
+                fetch(`${API_URL}/api/settings`, {
+                    method: 'POST',
+                    body: JSON.stringify(simOptions),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                // Save to Firebase (Primary Persistence)
+                await setDoc(doc(db, "settings", "user_default"), simOptions);
+                console.log("Saved to Firebase");
+            } catch (e) {
+                console.error("Firebase Save Error:", e);
+            }
         }, 1000);
         return () => clearTimeout(timer);
     }, [simOptions]);
