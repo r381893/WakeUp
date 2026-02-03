@@ -12,7 +12,7 @@ app = FastAPI(title="Wealth-OS Brain")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # Allow all for now to simplify deployment
     allow_methods=["*"],
     allow_headers=["*"],
 )
