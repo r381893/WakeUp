@@ -1,0 +1,23 @@
+[
+    {
+        "id": "19253df1-634a-4202-85b4-ef846c69debe",
+        "symbol": "00631L",
+        "shares": 4800.0,
+        "avg_cost": 328.5,
+        "created_at": "2026-02-02T21:26:20.613446"
+    },
+    {
+        "id": "ca5cefb3-e592-40bc-a55f-a23e9e62eaa1",
+        "symbol": "MTX",
+        "shares": -2.0,
+        "avg_cost": 31964.0,
+        "created_at": "2026-02-02T21:58:28.030239"
+    },
+    {
+        "id": "6d7e87f8-3e85-4c09-8524-a168538a38cb",
+        "symbol": "CASH",
+        "shares": 1400000.0,
+        "avg_cost": 1.0,
+        "created_at": "2026-02-03T07:33:11.829662"
+    }
+]

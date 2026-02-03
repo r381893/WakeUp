@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Glassmorphism & Neon Theme */
+:root {
+    --neon-green: #00ff9d;
+    --neon-red: #ff0055;
+    --neon-yellow: #ffdd00;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #000000 100%);
+    min-height: 100vh;
+    color: white;
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 40px 0 rgba(0, 255, 157, 0.1);
+}
+
+.btn-neon {
+    background: transparent;
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.btn-neon:hover {
+    background: var(--neon-green);
+    color: black;
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.4);
+}
+
+.metric-value {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -2px;
+    background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

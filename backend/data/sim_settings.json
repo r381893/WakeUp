@@ -1,0 +1,20 @@
+{
+    "weekly": {
+        "strike": "31900 P",
+        "price": 24.6,
+        "iv": 18.5
+    },
+    "monthly_500": {
+        "label": "\u6708 500 \u907f\u96aa",
+        "strike": "31600 P",
+        "price": 176.8,
+        "iv": 16.8
+    },
+    "monthly_1000": {
+        "label": "\u6708 1000 \u907f\u96aa",
+        "strike": "31100 P",
+        "price": 180.9,
+        "iv": 15.2
+    },
+    "index_price": 32105
+}
