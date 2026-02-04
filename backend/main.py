@@ -61,7 +61,6 @@ async def simulate_strategy(symbol: str, strategy: str = 'ma_trend', capital: fl
     Includes comparison against 0050.TW (Benchmark)
     """
     try:
-    try:
         # Fetch target and benchmark data
         # Hack: Use 0050.TW (ETF) as proxy for MTX (Futures) Simulation
         # Reasons: 
