@@ -616,9 +616,18 @@ function App() {
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                     const currentDays = Math.max(0, diffDays); // Ensure non-negative
 
+                                    // Helper to safely parse strike (remove ' P', ' C' etc)
+                                    const safeStrike = (val) => {
+                                        if (typeof val === 'number') return val;
+                                        if (!val) return 0;
+                                        return parseInt(val.toString().replace(/[^\d]/g, '')) || 0;
+                                    };
+
+                                    const numerizedStrike = safeStrike(data.strike);
+
                                     // Use Shared Helper
                                     const simulatedPrice = isSimulating
-                                        ? calculateOptionPrice(currentSide, activeOptions?.index_price || 23000, data.strike, currentDays / 365.0, 0.015, currentIV / 100.0).toFixed(1)
+                                        ? calculateOptionPrice(currentSide, activeOptions?.index_price || 23000, numerizedStrike, currentDays / 365.0, 0.015, currentIV / 100.0).toFixed(1)
                                         : data.price;
 
                                     return (
@@ -675,7 +684,7 @@ function App() {
                                                             <div className="text-[9px] text-gray-500 mb-1">履約價 (Strike)</div>
                                                             <input
                                                                 type="number"
-                                                                value={data.strike || ''}
+                                                                value={numerizedStrike || ''}
                                                                 onChange={e => setSimOptions({
                                                                     ...simOptions,
                                                                     [type]: { ...data, strike: Number(e.target.value) }
