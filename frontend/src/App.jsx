@@ -635,7 +635,7 @@ function App() {
                     <motion.div key="advisor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
 
                         {/* Stress Test Module */}
-                        <StressTest portfolio={portfolio} indexPrice={monitorData?.price || 23000} />
+                        <StressTest portfolio={portfolio} indexPrice={activeOptions?.index_price || 23000} />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Hedge Tool */}
