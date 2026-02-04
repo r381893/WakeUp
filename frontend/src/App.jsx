@@ -519,8 +519,10 @@ function App() {
                                         <div className="text-sm font-bold text-white font-mono">{labData.period_start} ~ {labData.period_end}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-xs text-gray-400">Final Equity</div>
-                                        <div className="text-2xl font-bold text-green-400 font-mono">${labData.final_equity?.toLocaleString()}</div>
+                                        <div className="text-xs text-gray-400">Total Return (累計報酬)</div>
+                                        <div className={`text-2xl font-bold font-mono ${labData.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                            {labData.total_return_pct > 0 ? '+' : ''}{labData.total_return_pct}%
+                                        </div>
                                     </div>
                                 </div>
 
