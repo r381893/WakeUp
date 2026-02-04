@@ -27,6 +27,23 @@ async def analyze_asset(symbol: str, ma_short: int = 20, ma_long: int = 60):
     Monitor Mode: Get real-time status of an asset.
     """
     try:
+        # Special Handling for CASH
+        if symbol.upper() == "CASH":
+            # Generate fake flat chart data for the last 30 days
+            import pandas as pd
+            dates = pd.date_range(end=pd.Timestamp.now(), periods=30)
+            chart_data = [{"time": int(d.timestamp()), "open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0} for d in dates]
+            
+            return {
+                "symbol": "CASH",
+                "price": 1.0,
+                "change": 0.0,
+                "status": "SAFE",
+                "ai_report": "Cash Position. Capital Preservation Mode. (資金避風港)",
+                "chart_data": chart_data,
+                "direct_change": 0
+            }
+
         # Fetch 6 months data to ensure MA calculation is accurate
         df = await fetch_price_history(symbol, period="6mo")
         result = calculate_ma_strategy(df, short_ma=ma_short, long_ma=ma_long)
