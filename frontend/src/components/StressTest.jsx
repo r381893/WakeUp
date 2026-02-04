@@ -114,6 +114,8 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
                     <thead className="bg-white/5 text-gray-400 uppercase">
                         <tr>
                             <th className="p-2">Asset</th>
+                            <th className="p-2 text-right">Shares</th>
+                            <th className="p-2 text-right">Price</th>
                             <th className="p-2 text-right">Value</th>
                             <th className="p-2 text-center">Factor</th>
                             <th className="p-2 text-right">Est. Impact</th>
@@ -122,7 +124,12 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
                     <tbody className="divide-y divide-white/5">
                         {breakdown.map((item, idx) => (
                             <tr key={idx} className="hover:bg-white/5">
-                                <td className="p-2 font-bold text-gray-300">{item.symbol}</td>
+                                <td className="p-2 font-bold text-gray-300">
+                                    {item.symbol}
+                                    <span className="block text-[8px] text-gray-600">{item.symbol.split('').map(c => c.charCodeAt(0)).join(',')}</span>
+                                </td>
+                                <td className="p-2 text-right text-gray-400">{item.shares}</td>
+                                <td className="p-2 text-right text-gray-400">{item.current_price}</td>
                                 <td className="p-2 text-right font-mono text-gray-400">${Math.round(item.market_value || 0).toLocaleString()}</td>
                                 <td className="p-2 text-center text-blue-400 font-bold bg-blue-900/20 rounded px-1">{item.leverageLabel}</td>
                                 <td className={`p-2 text-right font-bold ${item.estPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
