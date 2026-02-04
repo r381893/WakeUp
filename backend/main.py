@@ -61,8 +61,16 @@ async def simulate_strategy(symbol: str, strategy: str = 'ma_trend', capital: fl
     Includes comparison against 0050.TW (Benchmark)
     """
     try:
+    try:
         # Fetch target and benchmark data
-        df = await fetch_price_history(symbol, period=period)
+        # Hack: Use 0050.TW (ETF) as proxy for MTX (Futures) Simulation
+        # Reasons: 
+        # 1. 0050 Includes Dividends (Total Return), closer to what users expect for "Market Return"
+        # 2. MTX (^TWII) in yfinance often has limited history or bad ticks
+        # 3. Ensures 10Y+ Data availability
+        fetch_symbol = "0050.TW" if symbol == "MTX" else symbol
+        
+        df = await fetch_price_history(fetch_symbol, period=period)
         try:
             benchmark_df = await fetch_price_history("0050.TW", period=period)
         except:
