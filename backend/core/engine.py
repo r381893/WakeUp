@@ -246,6 +246,7 @@ def run_backtest_simulation(df: pd.DataFrame, initial_capital: float = 100000, s
 
     return {
         "final_equity": round(final_equity, 0),
+        "total_return_pct": round(((final_equity - initial_capital) / initial_capital) * 100, 2), # New Metric
         "cagr_percent": round(cagr, 2),
         "mdd_percent": round(mdd, 2),
         "win_rate": round(win_rate, 2),
