@@ -51,7 +51,9 @@ import StressTest from './components/StressTest';
 
 // V3 API URL
 // V3 API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.PROD
+    ? 'https://wealth-os-backend.onrender.com'
+    : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
 
 const ASSETS = [
     { id: '00631L', name: '00631L (2X Bull)' },
