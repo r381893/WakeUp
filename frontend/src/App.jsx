@@ -120,26 +120,69 @@ function App() {
         }
     };
 
+    // State for Syncing
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    // Sync Effect: Poll Backend every 10s if Sync is ON
+    useEffect(() => {
+        if (!isSyncing) return;
+
+        const syncData = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/options`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.index_price) {
+                        setSimOptions(prev => ({
+                            ...prev,
+                            index_price: Math.round(data.index_price)
+                        }));
+                    }
+                }
+            } catch (e) {
+                console.error("Sync Failed:", e);
+                // Don't turn off, just retry next time
+            }
+        };
+
+        syncData(); // Initial call
+        const interval = setInterval(syncData, 10000);
+        return () => clearInterval(interval);
+    }, [isSyncing]);
+
     // Firebase: Load Portfolio
     const fetchPortfolio = async () => {
         try {
-            // First try fetching real-time data from backend to enrich prices
-            const res = await fetch(`${API_URL}/api/portfolio?t=${Date.now()}`);
-            if (res.ok) {
-                const json = await res.json();
-                setPortfolio(json);
+            // Priority: Load from Firebase
+            const docRef = doc(db, "portfolio", "user_positions");
+            const docSnap = await getDoc(docRef);
+
+            let localData = [];
+            if (docSnap.exists()) {
+                console.log("Loaded portfolio from Firebase");
+                localData = docSnap.data().positions || [];
             }
 
-            // Overwrite with Firebase Data if available (Sync)
-            // Ideally we should merge: Firebase stores shares/cost, Backend enriches price.
-            // For now, let's keep using backend for Portfolio as it calculates live PnL.
-            // But we should SAVE new positions to Backend (which saves to local JSON) OR Firebase.
-            // User requested Firebase to solve data loss. 
-            // Strategy: 
-            // 1. Settings (simOptions) -> Firebase (Critical)
-            // 2. Portfolio -> Backend (JSON) is fine if moved to HDD. 
-            // Let's focus on Settings first which was the main complaint.
-        } catch (e) { console.error(e); }
+            // Then enrich with real-time price from Backend
+            // We successfully loaded shares/cost from Firebase, now we need current prices.
+            try {
+                const res = await fetch(`${API_URL}/api/portfolio?enrich_only=true`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(localData)
+                });
+                if (res.ok) {
+                    const enriched = await res.json();
+                    setPortfolio(enriched);
+                } else {
+                    // Fallback if backend is down: show just stored data
+                    setPortfolio(localData);
+                }
+            } catch (err) {
+                console.warn("Backend price enrichment failed, showing cached data", err);
+                setPortfolio(localData);
+            }
+        } catch (e) { console.error("Portfolio Load Error:", e); }
     };
 
     const fetchOptionsData = async () => {
@@ -176,22 +219,53 @@ function App() {
         e.preventDefault();
         try {
             const finalShares = side === 'short' ? -Math.abs(Number(newPos.shares)) : Math.abs(Number(newPos.shares));
-            const payload = { ...newPos, shares: finalShares };
-            await fetch(`${API_URL}/api/portfolio`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const newEntry = {
+                id: Date.now().toString(),
+                symbol: newPos.symbol,
+                shares: finalShares,
+                avg_cost: Number(newPos.avg_cost)
+            };
+
+            // 1. Update Local State (Optimistic)
+            const updatedPortfolio = [...portfolio, newEntry];
+            setPortfolio(updatedPortfolio);
+
+            // 2. Save to Firebase
+            // We store the RAW data (without calculated PnL) to Firebase
+            const rawData = updatedPortfolio.map(p => ({
+                id: p.id,
+                symbol: p.symbol,
+                shares: p.shares,
+                avg_cost: p.avg_cost
+            }));
+            await setDoc(doc(db, "portfolio", "user_positions"), { positions: rawData });
+
             setShowAddModal(false);
             setNewPos({ symbol: '00631L', shares: '', avg_cost: '' });
             setSide('long');
+
+            // 3. Refresh (Enrichment)
             fetchPortfolio();
-        } catch (e) { alert("Failed to add"); }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to save position");
+        }
     };
 
     const handleDelete = async (id) => {
         if (!confirm("Delete this position?")) return;
-        await fetch(`${API_URL}/api/portfolio/${id}`, { method: 'DELETE' });
+
+        const updatedPortfolio = portfolio.filter(p => p.id !== id);
+        setPortfolio(updatedPortfolio);
+
+        const rawData = updatedPortfolio.map(p => ({
+            id: p.id,
+            symbol: p.symbol,
+            shares: p.shares,
+            avg_cost: p.avg_cost
+        }));
+
+        await setDoc(doc(db, "portfolio", "user_positions"), { positions: rawData });
         fetchPortfolio();
     };
 
@@ -556,15 +630,21 @@ function App() {
                                     <input
                                         type="number"
                                         value={activeOptions?.index_price || ''}
-                                        onChange={e => setSimOptions({ ...simOptions, index_price: Number(e.target.value) })}
+                                        onChange={e => {
+                                            setIsSyncing(false);
+                                            setSimOptions({ ...simOptions, index_price: Number(e.target.value) });
+                                        }}
                                         className="bg-black/50 border border-purple-500/30 rounded px-2 py-1 text-white text-sm w-32 font-mono focus:border-purple-500 outline-none transition"
                                     />
                                     <button
-                                        onClick={() => optionsData?.index_price && setSimOptions({ ...simOptions, index_price: optionsData.index_price })}
-                                        className="p-1.5 rounded-md hover:bg-white/10 text-purple-300 transition"
-                                        title="同步即時大盤"
+                                        onClick={() => setIsSyncing(!isSyncing)}
+                                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${isSyncing
+                                                ? 'bg-purple-500 text-white shadow-[0_0_10px_#a855f7]'
+                                                : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                            }`}
                                     >
-                                        <Zap size={14} />
+                                        <Zap size={14} className={isSyncing ? 'animate-pulse' : ''} />
+                                        {isSyncing ? '同步中 (LIVE)' : '手動 (MANUAL)'}
                                     </button>
                                     <span className="text-xs text-gray-500">此數值會即時影響上方「Hedge Advisor」的避險口數計算</span>
                                     {saveStatus === 'saving' && <span className="text-xs text-yellow-400 animate-pulse">Saving...</span>}
