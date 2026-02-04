@@ -55,16 +55,16 @@ async def analyze_asset(symbol: str, ma_short: int = 20, ma_long: int = 60):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/simulate/{symbol}")
-async def simulate_strategy(symbol: str, strategy: str = 'ma_trend', capital: float = 1000000, ma_period: int = 60, leverage: float = 1.0):
+async def simulate_strategy(symbol: str, strategy: str = 'ma_trend', capital: float = 1000000, ma_period: int = 60, leverage: float = 1.0, period: str = "5y"):
     """
     Lab Mode: Run a quick backtest.
     Includes comparison against 0050.TW (Benchmark)
     """
     try:
         # Fetch target and benchmark data
-        df = await fetch_price_history(symbol, period="5y")
+        df = await fetch_price_history(symbol, period=period)
         try:
-            benchmark_df = await fetch_price_history("0050.TW", period="5y")
+            benchmark_df = await fetch_price_history("0050.TW", period=period)
         except:
             benchmark_df = None
             

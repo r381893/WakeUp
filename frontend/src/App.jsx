@@ -507,6 +507,13 @@ function App() {
                                 <span className="text-xs text-gray-400">MA</span>
                                 <input type="number" className="w-16 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={maPeriod} onChange={e => setMaPeriod(e.target.value)} />
                             </div>
+                            <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={period} onChange={e => setPeriod(e.target.value)}>
+                                <option value="1y">1Y</option>
+                                <option value="3y">3Y</option>
+                                <option value="5y">5Y</option>
+                                <option value="10y">10Y</option>
+                                <option value="max">MAX</option>
+                            </select>
                             <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white hover:bg-blue-500 transition">Backtest</button>
                         </div>
 
