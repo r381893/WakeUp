@@ -257,7 +257,18 @@ function App() {
 
                 // Save to Firebase (Primary Persistence)
                 console.log("Saving to Firebase...");
-                await setDoc(doc(db, "settings", "user_default"), simOptions);
+
+                // Create a timeout promise
+                const timeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Firebase write timed out")), 5000)
+                );
+
+                // Race setDoc against timeout
+                await Promise.race([
+                    setDoc(doc(db, "settings", "user_default"), simOptions),
+                    timeout
+                ]);
+
                 console.log("Saved to Firebase successfully");
                 setSaveStatus('saved');
                 setTimeout(() => setSaveStatus('idle'), 2000);
