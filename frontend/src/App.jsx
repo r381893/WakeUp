@@ -497,30 +497,121 @@ function App() {
                             <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={strategy} onChange={e => setStrategy(e.target.value)}>
                                 <option value="ma_trend">MA Trend</option><option value="ma_long">MA Long</option><option value="buy_hold">Buy & Hold</option>
                             </select>
-                            <input type="number" className="w-16 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={maPeriod} onChange={e => setMaPeriod(e.target.value)} />
-                            <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white">Backtest</button>
+                            <div className="flex items-center gap-1" title="Leverage">
+                                <span className="text-xs text-gray-400">x</span>
+                                <input type="number" step="0.5" min="1" max="5" className="w-12 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={leverage} onChange={e => setLeverage(e.target.value)} />
+                            </div>
+                            <div className="flex items-center gap-1" title="MA Period">
+                                <span className="text-xs text-gray-400">MA</span>
+                                <input type="number" className="w-16 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={maPeriod} onChange={e => setMaPeriod(e.target.value)} />
+                            </div>
+                            <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white hover:bg-blue-500 transition">Backtest</button>
                         </div>
 
-                        {loading ? <div className="animate-pulse text-blue-400">Processing...</div> : labData && (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                    <div className="text-gray-400 text-[10px] uppercase">Final Equity</div>
-                                    <div className="text-xl font-bold text-green-400">${labData.final_equity?.toLocaleString()}</div>
+                        {loading ? <div className="animate-pulse text-blue-400">Processing simulation...</div> : labData && (
+                            <div className="space-y-6">
+                                {/* Summary Stats */}
+                                <div className="flex justify-between items-end mb-2 border-b border-white/10 pb-2">
+                                    <div className="text-left">
+                                        <div className="text-xs text-gray-400">Time Range (Duration: {labData.duration_years} Years)</div>
+                                        <div className="text-sm font-bold text-white font-mono">{labData.period_start} ~ {labData.period_end}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xs text-gray-400">Final Equity</div>
+                                        <div className="text-2xl font-bold text-green-400 font-mono">${labData.final_equity?.toLocaleString()}</div>
+                                    </div>
                                 </div>
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                    <div className="text-gray-400 text-[10px] uppercase">CAGR</div>
-                                    <div className="text-xl font-bold text-blue-400">{labData.cagr_percent}%</div>
-                                    <div className="text-[10px] text-gray-500">BM: {labData.benchmark_cagr}%</div>
+
+                                <div className="grid grid-cols-3 lg:grid-cols-3 gap-4">
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-[10px] uppercase">CAGR (Annual Return)</div>
+                                        <div className="text-xl font-bold text-blue-400">{labData.cagr_percent}%</div>
+                                        <div className="text-[10px] text-gray-500">Benchmark: {labData.benchmark_cagr}%</div>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-[10px] uppercase">Max Drawdown</div>
+                                        <div className="text-xl font-bold text-red-400">{labData.mdd_percent}%</div>
+                                        <div className="text-[10px] text-gray-500">Benchmark: {labData.benchmark_mdd}%</div>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-[10px] uppercase">Win Rate</div>
+                                        <div className="text-xl font-bold text-purple-400">{labData.win_rate}%</div>
+                                        <div className="text-[10px] text-gray-500">{labData.total_trades} Trades</div>
+                                    </div>
                                 </div>
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                    <div className="text-gray-400 text-[10px] uppercase">MDD</div>
-                                    <div className="text-xl font-bold text-red-400">{labData.mdd_percent}%</div>
-                                    <div className="text-[10px] text-gray-500">BM: {labData.benchmark_mdd}%</div>
-                                </div>
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                    <div className="text-gray-400 text-[10px] uppercase">Analytics</div>
-                                    <div className="text-xl font-bold text-purple-400">{labData.win_rate}%</div>
-                                    <div className="text-[10px] text-gray-500">{labData.total_trades} Trades</div>
+
+                                {/* Complex Tables Grid */}
+                                <div className="grid md:grid-cols-2 gap-6 text-left">
+
+                                    {/* Yearly Stats */}
+                                    <div className="glass-card overflow-hidden">
+                                        <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
+                                            <span>Yearly Performance</span>
+                                            <BarChart2 size={14} />
+                                        </div>
+                                        <div className="max-h-[300px] overflow-y-auto">
+                                            <table className="w-full text-xs">
+                                                <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
+                                                    <tr>
+                                                        <th className="p-2">Year</th>
+                                                        <th className="p-2 text-right">Return</th>
+                                                        <th className="p-2 text-right">MDD</th>
+                                                        <th className="p-2 text-right">Profit</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {labData.yearly_stats?.map(stat => (
+                                                        <tr key={stat.year} className="hover:bg-white/5">
+                                                            <td className="p-2 font-mono text-gray-300">{stat.year}</td>
+                                                            <td className={`p-2 text-right font-bold ${stat.return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                                {stat.return_pct}%
+                                                            </td>
+                                                            <td className="p-2 text-right text-red-300">{stat.mdd_pct}%</td>
+                                                            <td className={`p-2 text-right font-mono ${stat.profit >= 0 ? 'text-gray-300' : 'text-gray-500'}`}>
+                                                                ${stat.profit.toLocaleString()}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Trade Logs */}
+                                    <div className="glass-card overflow-hidden">
+                                        <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
+                                            <span>Trade History (Last 50)</span>
+                                            <RotateCcw size={14} />
+                                        </div>
+                                        <div className="max-h-[300px] overflow-y-auto">
+                                            <table className="w-full text-xs">
+                                                <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
+                                                    <tr>
+                                                        <th className="p-2">Date</th>
+                                                        <th className="p-2">Type</th>
+                                                        <th className="p-2 text-right">Price</th>
+                                                        <th className="p-2 text-right">PnL</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {labData.trade_list?.slice(0, 50).map((trade, i) => (
+                                                        <tr key={i} className="hover:bg-white/5">
+                                                            <td className="p-2 font-mono text-gray-400">{trade.entry_date}</td>
+                                                            <td className="p-2">
+                                                                <span className={`px-1.5 py-0.5 rounded ${trade.type === 'LONG' ? 'bg-green-900/40 text-green-400' : 'bg-red-900/40 text-red-400'}`}>
+                                                                    {trade.type}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-2 text-right font-mono text-gray-300">{trade.entry_price}</td>
+                                                            <td className={`p-2 text-right font-bold ${trade.pnl_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                                {trade.pnl_pct}%
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -639,8 +730,8 @@ function App() {
                                     <button
                                         onClick={() => setIsSyncing(!isSyncing)}
                                         className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${isSyncing
-                                                ? 'bg-purple-500 text-white shadow-[0_0_10px_#a855f7]'
-                                                : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                            ? 'bg-purple-500 text-white shadow-[0_0_10px_#a855f7]'
+                                            : 'bg-white/10 text-gray-400 hover:bg-white/20'
                                             }`}
                                     >
                                         <Zap size={14} className={isSyncing ? 'animate-pulse' : ''} />
