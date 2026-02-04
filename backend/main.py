@@ -73,18 +73,35 @@ class PositionRequest(BaseModel):
     shares: float
     avg_cost: float
 
-@app.get("/api/portfolio")
-async def get_portfolio():
-    items = get_portfolio_summary()
+@app.api_route("/api/portfolio", methods=["GET", "POST"])
+async def get_portfolio(positions: Optional[List[dict]] = None, enrich_only: bool = False):
+    """
+    Get portfolio with real-time data.
+    If enrich_only is True, it expects a list of positions in the body to calculate PnL for.
+    Otherwise, it loads from backend local storage (legacy).
+    """
+    
+    # If positions provided via POST, use them. Otherwise load from local DB
+    if positions:
+        items = positions
+    else:
+        # Fallback to local storage (or empty if migrating)
+        items = get_portfolio_summary()
+
     enriched_items = []
     for item in items:
         try:
+            # Normalize keys if coming from different sources (Firebase vs Python dict)
+            symbol = item.get('symbol')
+            shares = float(item.get('shares', 0))
+            avg_cost = float(item.get('avg_cost', 0))
+            
             # Special Handling for CASH
-            if item['symbol'] == "CASH":
+            if symbol == "CASH":
                 item.update({
                     "current_price": 1.0,
                     "daily_change_pct": 0,
-                    "market_value": round(item['shares'], 0),
+                    "market_value": round(shares, 0),
                     "pnl": 0,
                     "pnl_pct": 0
                 })
@@ -92,7 +109,7 @@ async def get_portfolio():
                 continue
 
             # Fetch real-time data (small period for speed)
-            df = await fetch_price_history(item['symbol'], period="5d")
+            df = await fetch_price_history(symbol, period="5d")
             
             if not df.empty and len(df) >= 2:
                 latest = df.iloc[-1]
@@ -105,20 +122,20 @@ async def get_portfolio():
                 # Apply Multiplier (Default 1)
                 # MTX (Mini Taiex) = 50 TWD per point
                 MULTIPLIERS = { "MTX": 50 }
-                multiplier = MULTIPLIERS.get(item['symbol'], 1)
+                multiplier = MULTIPLIERS.get(symbol, 1)
 
-                if item['symbol'] == "MTX":
+                if symbol == "MTX":
                     # For Futures, we only count the PnL as part of the total asset value
                     # to avoid skewing Net Worth with millions of notional value.
-                    unrealized_pnl = (current_price - item['avg_cost']) * item['shares'] * 50
+                    unrealized_pnl = (current_price - avg_cost) * shares * 50
                     market_value = unrealized_pnl
                 else:
-                    market_value = current_price * item['shares'] * multiplier
-                    cost_basis = item['avg_cost'] * item['shares'] * multiplier
+                    market_value = current_price * shares * multiplier
+                    cost_basis = avg_cost * shares * multiplier
                     unrealized_pnl = market_value - cost_basis
                 
                 # Avoid division by zero
-                cost_basis_ref = item['avg_cost'] * abs(item['shares']) * multiplier
+                cost_basis_ref = avg_cost * abs(shares) * multiplier
                 pnl_pct = (unrealized_pnl / cost_basis_ref) * 100 if cost_basis_ref != 0 else 0
                 
                 item.update({
@@ -135,7 +152,7 @@ async def get_portfolio():
                 })
                 
         except Exception as e:
-            print(f"Error enriching {item['symbol']}: {e}")
+            print(f"Error enriching {item.get('symbol')}: {e}")
             item.update({
                 "current_price": 0, "daily_change_pct": 0, "market_value": 0, "pnl": 0, "pnl_pct": 0
             })
@@ -144,9 +161,9 @@ async def get_portfolio():
         
     return enriched_items
 
-@app.post("/api/portfolio")
-def add_portfolio_item(item: PositionRequest):
-    return add_position(item.symbol, item.shares, item.avg_cost)
+# @app.post("/api/portfolio")
+# def add_portfolio_item(item: PositionRequest):
+#     return add_position(item.symbol, item.shares, item.avg_cost)
 
 @app.delete("/api/portfolio/{position_id}")
 def remove_portfolio_item(position_id: str):
