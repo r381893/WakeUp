@@ -126,7 +126,6 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
                             <tr key={idx} className="hover:bg-white/5">
                                 <td className="p-2 font-bold text-gray-300">
                                     {item.symbol}
-                                    <span className="block text-[8px] text-gray-600">{item.symbol.split('').map(c => c.charCodeAt(0)).join(',')}</span>
                                 </td>
                                 <td className="p-2 text-right text-gray-400">{item.shares}</td>
                                 <td className="p-2 text-right text-gray-400">{item.current_price}</td>
