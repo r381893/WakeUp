@@ -76,8 +76,12 @@ def fetch_yahoo_realtime(symbol: str):
                     if match:
                         change_str = match.group(1).replace("▲", "").replace("▼", "").replace("+", "").replace(",", "").strip()
                         change_val = float(change_str)
-                        # Determine sign
-                        if "▼" in match.group(0) or "-" in match.group(0):
+                        change_val = float(change_str)
+                        
+                        # Determine sign using robust class detection
+                        is_down = container.select_one('[class*="C($c-trend-down)"]') is not None
+                        
+                        if is_down:
                             change_val = -abs(change_val)
                         else:
                             change_val = abs(change_val)
