@@ -495,7 +495,9 @@ function App() {
                                 <input type="text" className="w-20 bg-black/50 border border-white/20 rounded px-2 py-1 text-white uppercase" value={customSymbol} onChange={e => setCustomSymbol(e.target.value)} placeholder={selectedAsset} />
                             </div>
                             <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={strategy} onChange={e => setStrategy(e.target.value)}>
-                                <option value="ma_trend">MA Trend</option><option value="ma_long">MA Long</option><option value="buy_hold">Buy & Hold</option>
+                                <option value="ma_trend">MA Trend (趨勢交易)</option>
+                                <option value="ma_long">MA Long (只做多)</option>
+                                <option value="buy_hold">Buy & Hold (買入持有)</option>
                             </select>
                             <div className="flex items-center gap-1" title="Leverage">
                                 <span className="text-xs text-gray-400">x</span>
