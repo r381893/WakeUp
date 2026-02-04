@@ -87,6 +87,7 @@ function App() {
     const [strategy, setStrategy] = useState('ma_long');
     const [maPeriod, setMaPeriod] = useState(60);
     const [leverage, setLeverage] = useState(1);
+    const [period, setPeriod] = useState('5y');
     const [customSymbol, setCustomSymbol] = useState('');
 
     // UI States
