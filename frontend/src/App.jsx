@@ -210,7 +210,15 @@ function App() {
 
                 if (docSnap.exists()) {
                     console.log("Loaded settings from Firebase:", docSnap.data());
-                    setSimOptions(docSnap.data());
+                    const raw = docSnap.data();
+                    // Clean legacy string data
+                    const clean = { ...raw };
+                    ['weekly', 'weekly_atm', 'monthly_200', 'monthly_500', 'monthly_1000', 'monthly_2000'].forEach(k => {
+                        if (clean[k] && typeof clean[k].strike === 'string') {
+                            clean[k].strike = parseInt(clean[k].strike.replace(/[^\d]/g, '')) || 0;
+                        }
+                    });
+                    setSimOptions(clean);
                 } else {
                     console.log("No settings found in Firebase, loading from Backend...");
                     // Fallback to Backend API
@@ -239,16 +247,18 @@ function App() {
         setSaveStatus('saving');
         const timer = setTimeout(async () => {
             try {
-                // Save to Backend (Backup)
+                // Save to Backend (Backup) - Fire and forget
+                console.log("Saving to Backend...");
                 fetch(`${API_URL}/api/settings`, {
                     method: 'POST',
                     body: JSON.stringify(simOptions),
                     headers: { 'Content-Type': 'application/json' }
-                });
+                }).catch(err => console.warn("Backend save skipped:", err));
 
                 // Save to Firebase (Primary Persistence)
+                console.log("Saving to Firebase...");
                 await setDoc(doc(db, "settings", "user_default"), simOptions);
-                console.log("Saved to Firebase");
+                console.log("Saved to Firebase successfully");
                 setSaveStatus('saved');
                 setTimeout(() => setSaveStatus('idle'), 2000);
             } catch (e) {
