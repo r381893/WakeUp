@@ -100,6 +100,7 @@ function App() {
     // Form State
     const [newPos, setNewPos] = useState({ symbol: '00631L', shares: '', avg_cost: '' });
     const [side, setSide] = useState('long');
+    const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, saved, error
 
     // --- Fetchers ---
 
@@ -235,6 +236,7 @@ function App() {
     // SAVE Settings to Firebase (Debounced)
     useEffect(() => {
         if (!simOptions) return;
+        setSaveStatus('saving');
         const timer = setTimeout(async () => {
             try {
                 // Save to Backend (Backup)
@@ -247,8 +249,11 @@ function App() {
                 // Save to Firebase (Primary Persistence)
                 await setDoc(doc(db, "settings", "user_default"), simOptions);
                 console.log("Saved to Firebase");
+                setSaveStatus('saved');
+                setTimeout(() => setSaveStatus('idle'), 2000);
             } catch (e) {
                 console.error("Firebase Save Error:", e);
+                setSaveStatus('error');
             }
         }, 1000);
         return () => clearTimeout(timer);
@@ -541,6 +546,9 @@ function App() {
                                         <Zap size={14} />
                                     </button>
                                     <span className="text-xs text-gray-500">此數值會即時影響上方「Hedge Advisor」的避險口數計算</span>
+                                    {saveStatus === 'saving' && <span className="text-xs text-yellow-400 animate-pulse">Saving...</span>}
+                                    {saveStatus === 'saved' && <span className="text-xs text-green-400">Saved</span>}
+                                    {saveStatus === 'error' && <span className="text-xs text-red-400">Save Failed!</span>}
                                 </div>
                             )}
 
