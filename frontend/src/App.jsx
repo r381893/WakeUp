@@ -444,11 +444,11 @@ function App() {
                     <motion.div key="portfolio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <div className="grid md:grid-cols-2 gap-4 mb-6">
                             <div className="glass-card p-6 flex items-center justify-between">
-                                <div><div className="text-gray-400 text-xs uppercase mb-1">Total Positions</div><div className="text-3xl font-bold text-white">{portfolio.length}</div></div>
+                                <div><div className="text-gray-400 text-xs uppercase mb-1">總持倉 (Total Positions)</div><div className="text-3xl font-bold text-white">{portfolio.length}</div></div>
                                 <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400"><Wallet /></div>
                             </div>
                             <div className="glass-card p-6 flex items-center justify-center cursor-pointer hover:bg-white/5 transition" onClick={() => setShowAddModal(true)}>
-                                <div className="flex flex-col items-center gap-2 text-blue-400"><Plus size={32} /><span className="font-bold">Add Position</span></div>
+                                <div className="flex flex-col items-center gap-2 text-blue-400"><Plus size={32} /><span className="font-bold">新增部位 (Add Position)</span></div>
                             </div>
                         </div>
 
@@ -523,7 +523,7 @@ function App() {
                                 {/* Summary Stats */}
                                 <div className="flex justify-between items-end mb-2 border-b border-white/10 pb-2">
                                     <div className="text-left">
-                                        <div className="text-xs text-gray-400">Time Range (Duration: {labData.duration_years} Years)</div>
+                                        <div className="text-xs text-gray-400">回測區間 (Duration: {labData.duration_years} Years)</div>
                                         <div className="text-sm font-bold text-white font-mono">{labData.period_start} ~ {labData.period_end}</div>
                                     </div>
                                     <div className="text-right">
@@ -558,7 +558,7 @@ function App() {
                                     {/* Yearly Stats */}
                                     <div className="glass-card overflow-hidden">
                                         <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
-                                            <span>Yearly Performance</span>
+                                            <span>年度績效 (Yearly Performance)</span>
                                             <BarChart2 size={14} />
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto">
@@ -592,7 +592,7 @@ function App() {
                                     {/* Trade Logs */}
                                     <div className="glass-card overflow-hidden">
                                         <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
-                                            <span>Trade History (Last 50)</span>
+                                            <span>交易歷史 (Trade History)</span>
                                             <RotateCcw size={14} />
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto">
@@ -962,20 +962,20 @@ function App() {
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div className="glass-card w-full max-w-md p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Add Position</h3>
+                        <h3 className="text-xl font-bold text-white mb-4">新增部位 (Add Position)</h3>
                         <form onSubmit={handleAddPosition} className="space-y-4">
                             <div className="flex bg-white/10 p-1 rounded-lg">
-                                <button type="button" onClick={() => setSide('long')} className={`flex-1 py-2 rounded-md text-xs font-bold transition ${side === 'long' ? 'bg-green-500 text-black shadow-lg' : 'text-gray-400'}`}>LONG</button>
-                                <button type="button" onClick={() => setSide('short')} className={`flex-1 py-2 rounded-md text-xs font-bold transition ${side === 'short' ? 'bg-red-500 text-white shadow-lg' : 'text-gray-400'}`}>SHORT</button>
+                                <button type="button" onClick={() => setSide('long')} className={`flex-1 py-2 rounded-md text-xs font-bold transition ${side === 'long' ? 'bg-green-500 text-black shadow-lg' : 'text-gray-400'}`}>做多 (LONG)</button>
+                                <button type="button" onClick={() => setSide('short')} className={`flex-1 py-2 rounded-md text-xs font-bold transition ${side === 'short' ? 'bg-red-500 text-white shadow-lg' : 'text-gray-400'}`}>做空 (SHORT)</button>
                             </div>
                             <select className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm" value={newPos.symbol} onChange={e => setNewPos({ ...newPos, symbol: e.target.value })}>
                                 {ASSETS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                             </select>
-                            <input type="number" required className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm" value={newPos.shares} onChange={e => setNewPos({ ...newPos, shares: e.target.value })} placeholder="Number of Shares" />
-                            <input type="number" required className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm" value={newPos.avg_cost} onChange={e => setNewPos({ ...newPos, avg_cost: e.target.value })} placeholder="Average Cost per Share" />
+                            <input type="number" required className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm" value={newPos.shares} onChange={e => setNewPos({ ...newPos, shares: e.target.value })} placeholder="股數 (Shares)" />
+                            <input type="number" required className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm" value={newPos.avg_cost} onChange={e => setNewPos({ ...newPos, avg_cost: e.target.value })} placeholder="平均成本 (Avg Cost)" />
                             <div className="flex gap-3 mt-4">
-                                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 rounded-lg border border-white/10 text-gray-300 text-sm">Cancel</button>
-                                <button type="submit" className="flex-1 py-3 rounded-lg bg-blue-600 text-white font-bold text-sm">Save Position</button>
+                                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 rounded-lg border border-white/10 text-gray-300 text-sm">取消 (Cancel)</button>
+                                <button type="submit" className="flex-1 py-3 rounded-lg bg-blue-600 text-white font-bold text-sm">儲存部位 (Save)</button>
                             </div>
                         </form>
                     </div>
