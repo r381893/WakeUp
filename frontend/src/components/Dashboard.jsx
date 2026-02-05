@@ -21,7 +21,7 @@ const Dashboard = ({ monitorData, portfolio, activeOptions }) => {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Top Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Market Status Card */}
                 <div className={`p-1 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 relative overflow-hidden group`}>
                     <div className={`absolute top-0 left-0 w-1 h-full ${statusColor} shadow-[0_0_20px_rgba(255,255,255,0.5)]`}></div>
@@ -91,6 +91,24 @@ const Dashboard = ({ monitorData, portfolio, activeOptions }) => {
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                             賣權保險: {activeOptions?.weekly?.price ? `$${activeOptions.weekly.price}` : '---'}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Volatility Monitor */}
+                <div className="glass-card p-5 flex flex-col justify-between bg-purple-900/10 border-purple-500/30">
+                    <div className="flex justify-between items-start">
+                        <div className="text-xs text-gray-400 uppercase tracking-widest">波動率策略 (Vol)</div>
+                        <Activity size={16} className="text-yellow-400" />
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-white tracking-tight flex items-end gap-2">
+                            {monitorData?.hv}% <span className="text-xs text-gray-500 mb-1">HV20</span>
+                        </div>
+                        <div className={`text-[10px] font-bold mt-1 ${monitorData?.vol_action === 'LONG_VOL' ? 'text-green-400' :
+                                monitorData?.vol_action === 'SHORT_VOL' ? 'text-red-400' : 'text-gray-400'
+                            }`}>
+                            {monitorData?.vol_desc || '載入中...'}
                         </div>
                     </div>
                 </div>

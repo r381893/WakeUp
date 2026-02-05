@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 def calculate_ma_strategy(df: pd.DataFrame, short_ma: int = 20, long_ma: int = 60) -> dict:
@@ -19,11 +20,15 @@ def calculate_ma_strategy(df: pd.DataFrame, short_ma: int = 20, long_ma: int = 6
     rs = gain / loss
     df['RSI'] = 100 - (100 / (1 + rs))
     
-    # 2. MACD (Moving Average Convergence Divergence)
+    # 2. MACD
     ema12 = df['Close'].ewm(span=12, adjust=False).mean()
     ema26 = df['Close'].ewm(span=26, adjust=False).mean()
     df['MACD'] = ema12 - ema26
     df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
+    
+    # 3. Volatility (HV20) - NEW
+    df['Log_Ret'] = np.log(df['Close'] / df['Close'].shift(1))
+    df['HV20'] = df['Log_Ret'].rolling(window=20).std() * np.sqrt(252) * 100
     
     # 2. Get Latest State
     latest = df.iloc[-1]
@@ -34,6 +39,7 @@ def calculate_ma_strategy(df: pd.DataFrame, short_ma: int = 20, long_ma: int = 6
     rsi = latest['RSI']
     macd = latest['MACD']
     signal_line = latest['Signal_Line']
+    hv_current = latest['HV20'] if not pd.isna(latest['HV20']) else 0
     
     # --- LOGIC BOARD ---
     # Logic: 
@@ -54,6 +60,25 @@ def calculate_ma_strategy(df: pd.DataFrame, short_ma: int = 20, long_ma: int = 6
         color = "neon-red"
         action = "HEDGE / SELL"
     
+    # --- VOLATILITY STRATEGY SUGGESTION ---
+    # Baseline IV assumption (e.g. 20) or user input later.
+    # Here we just provide the classification based on HV vs 20 (as a simplified VIX baseline)
+    # In a real app, we would pass current IV in.
+    vol_action = "NEUTRAL"
+    vol_desc = "Volatility is Normal"
+    
+    # Natenberg Logic: HV is "Truth". If IV (Market) < HV (Truth), Options are Cheap -> BUY.
+    # Note: We compare HV current vs HV avg or fixed baseline.
+    # Let's assume a "Low Vol" regime is < 15, "High Vol" is > 25.
+    
+    if hv_current < 15:
+        vol_action = "LONG_VOL"
+        vol_desc = "Low HV (Cheap) -> Long Straddle / Gamma"
+    elif hv_current > 25:
+        vol_action = "SHORT_VOL"
+        vol_desc = "High HV (Expensive) -> Short Strangle / Iron Condor"
+        
+    
     # --- AI REPORT GENERATION ---
     report = []
     report.append(f"Price is {'ABOVE' if price > ma_s else 'BELOW'} MA20.")
@@ -68,6 +93,8 @@ def calculate_ma_strategy(df: pd.DataFrame, short_ma: int = 20, long_ma: int = 6
         report.append("MACD Bullish Crossover 📈.")
     else:
         report.append("MACD Bearish Divergence 📉.")
+    
+    report.append(f"HV20 is {round(hv_current, 1)}%.")
         
     ai_report = " ".join(report)
 
@@ -103,6 +130,9 @@ def calculate_ma_strategy(df: pd.DataFrame, short_ma: int = 20, long_ma: int = 6
         "timestamp": str(latest.name),
         "rsi": round(rsi, 2) if not pd.isna(rsi) else 50,
         "macd": round(macd, 2) if not pd.isna(macd) else 0,
+        "hv": round(hv_current, 2),
+        "vol_action": vol_action,
+        "vol_desc": vol_desc,
         "ai_report": ai_report,
         "chart_data": chart_data,
         "direct_change": direct_change # Pass this to UI
