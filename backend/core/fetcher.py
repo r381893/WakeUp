@@ -192,42 +192,76 @@ async def fetch_price_history(symbol: str, period: str = "1y") -> pd.DataFrame:
         # Re-raise if no fallback worked
         raise e
 
+import math
+
+# --- Black-Scholes Helper ---
+def cnd(x):
+    """Cumulative Normal Distribution"""
+    return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
+
+def calculate_bs_put(S, K, T, r, sigma):
+    """
+    Calculate Put Option Price using Black-Scholes Model
+    S: Spot Price
+    K: Strike Price
+    T: Time to Maturity (years)
+    r: Risk Free Rate (decimal)
+    sigma: Volatility (decimal)
+    """
+    if T <= 0 or sigma <= 0: return max(0, K - S)
+    
+    d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+    d2 = d1 - sigma * math.sqrt(T)
+    
+    put_price = K * math.exp(-r * T) * cnd(-d2) - S * cnd(-d1)
+    return max(0, put_price)
+
 async def fetch_options_summary(index_price: float):
     """
     V5 Helper: Calculate nearest OTM Puts for insurance.
     Returns Weekly, Monthly 500, and Monthly 1000 OTM targets.
     """
     try:
+        # Parameters
+        r = 0.015  # Risk Free Rate (1.5%)
+        sigma = 0.20 # Implied Volatility (Assuming 20% for conservative estimate)
+        
         # Round to nearest 100
         base_strike = round(index_price / 100) * 100
         
-        # Weekly OTM (approx 200 points out)
+        # 1. Weekly OTM (approx 200 points out) - 5 Days left
         w_strike = base_strike - 200
-        # Monthly OTM 500
+        w_price = calculate_bs_put(index_price, w_strike, 5/365, r, sigma)
+        
+        # 2. Monthly OTM 500 - 20 Days left
         m500_strike = base_strike - 500
-        # Monthly OTM 1000
+        m500_price = calculate_bs_put(index_price, m500_strike, 20/365, r, sigma)
+        
+        # 3. Monthly OTM 1000 - 20 Days left
         m1000_strike = base_strike - 1000
+        m1000_price = calculate_bs_put(index_price, m1000_strike, 20/365, r, sigma)
         
         return {
             "weekly": {
                 "strike": f"{w_strike} P",
-                "price": round(max(20, (index_price - w_strike) * 0.12), 1),
-                "iv": 18.5
+                "price": round(w_price, 1),
+                "iv": round(sigma * 100, 1)
             },
             "monthly_500": {
                 "label": "月 500 避險",
                 "strike": f"{m500_strike} P",
-                "price": round(max(150, (index_price - m500_strike) * 0.35), 1),
-                "iv": 16.8
+                "price": round(m500_price, 1),
+                "iv": round(sigma * 100, 1)
             },
             "monthly_1000": {
                 "label": "月 1000 避險",
                 "strike": f"{m1000_strike} P",
-                "price": round(max(60, (index_price - m1000_strike) * 0.18), 1),
-                "iv": 15.2
+                "price": round(m1000_price, 1),
+                "iv": round(sigma * 100, 1)
             }
         }
-    except:
+    except Exception as e:
+        print(f"Error calculating options: {e}")
         return None
 
 # Normal Flow
