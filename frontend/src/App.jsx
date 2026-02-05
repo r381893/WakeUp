@@ -534,7 +534,7 @@ function App() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 lg:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                     <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                                         <div className="text-gray-400 text-[10px] uppercase">CAGR (Annual Return)</div>
                                         <div className="text-xl font-bold text-blue-400">{labData.cagr_percent}%</div>
@@ -544,6 +544,16 @@ function App() {
                                         <div className="text-gray-400 text-[10px] uppercase">Max Drawdown</div>
                                         <div className="text-xl font-bold text-red-400">{labData.mdd_percent}%</div>
                                         <div className="text-[10px] text-gray-500">Benchmark: {labData.benchmark_mdd}%</div>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-[10px] uppercase">Sharpe Ratio</div>
+                                        <div className="text-xl font-bold text-yellow-400">{labData.sharpe_ratio}</div>
+                                        <div className="text-[10px] text-gray-500">Risk-Adj Return</div>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-[10px] uppercase">Sortino Ratio</div>
+                                        <div className="text-xl font-bold text-yellow-400">{labData.sortino_ratio}</div>
+                                        <div className="text-[10px] text-gray-500">Downside Risk</div>
                                     </div>
                                     <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                                         <div className="text-gray-400 text-[10px] uppercase">Win Rate</div>
