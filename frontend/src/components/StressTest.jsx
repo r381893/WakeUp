@@ -87,6 +87,19 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
                     <span>FLAT (0)</span>
                     <span>BOOM (+2000)</span>
                 </div>
+
+                {/* Historical Scenarios */}
+                <div className="grid grid-cols-3 gap-2 mt-4">
+                    <button onClick={() => setMarketChange(-2000)} className="px-2 py-1 bg-red-900/40 border border-red-500/30 rounded text-xs text-red-300 hover:bg-red-500/20 transition">
+                        2008 海嘯 (-50%)
+                    </button>
+                    <button onClick={() => setMarketChange(-1500)} className="px-2 py-1 bg-red-900/30 border border-red-500/20 rounded text-xs text-red-300 hover:bg-red-500/20 transition">
+                        2000 泡沫 (-40%)
+                    </button>
+                    <button onClick={() => setMarketChange(-1000)} className="px-2 py-1 bg-red-900/20 border border-red-500/10 rounded text-xs text-red-300 hover:bg-red-500/20 transition">
+                        2020 疫情 (-30%)
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
