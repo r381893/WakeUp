@@ -12,18 +12,27 @@ import {
 
 const OptionsLab = ({ API_URL, symbol }) => {
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [result, setResult] = useState(null);
     const [initialCapital, setInitialCapital] = useState(100000);
     const [period, setPeriod] = useState('1y');
 
     const runSimulation = async () => {
         setLoading(true);
+        setError(null);
         try {
             const res = await fetch(`${API_URL}/api/simulate/options/${symbol}?period=${period}&initial_capital=${initialCapital}`);
             const data = await res.json();
-            setResult(data);
+
+            if (data.detail) {
+                console.error("Backend Error:", data.detail);
+                setError(data.detail);
+            } else {
+                setResult(data);
+            }
         } catch (error) {
             console.error("Simulation failed:", error);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
@@ -54,7 +63,11 @@ const OptionsLab = ({ API_URL, symbol }) => {
 
             {loading ? (
                 <div className="animate-pulse text-purple-400">Simulating Volatility Strategies...</div>
-            ) : result && (
+            ) : error ? (
+                <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-200 text-sm">
+                    Simulation Error: {error}
+                </div>
+            ) : result && result.final_equity !== undefined ? (
                 <>
                     {/* Stats Grid */}
                     <div className="grid grid-cols-3 gap-4">
@@ -132,7 +145,7 @@ const OptionsLab = ({ API_URL, symbol }) => {
                         </div>
                     </div>
                 </>
-            )}
+            ) : null}
         </div>
     );
 };
