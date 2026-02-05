@@ -192,6 +192,22 @@ def run_backtest_simulation(df: pd.DataFrame, initial_capital: float = 100000, s
     drawdown = (df['Equity'] - rolling_max) / rolling_max
     mdd = drawdown.min() * 100 
     
+    # 2. Risk Metrics (Sharpe & Sortino)
+    risk_free_rate = 0.015 # 1.5%
+    daily_rf = risk_free_rate / 252
+    
+    # Sharpe Ratio
+    excess_returns = df['Strategy_Returns'] - daily_rf
+    sharpe = 0
+    if df['Strategy_Returns'].std() != 0:
+        sharpe = (excess_returns.mean() / df['Strategy_Returns'].std()) * (252 ** 0.5)
+        
+    # Sortino Ratio (Downside Risk only)
+    downside_returns = df['Strategy_Returns'][df['Strategy_Returns'] < 0]
+    sortino = 0
+    if len(downside_returns) > 0 and downside_returns.std() != 0:
+        sortino = (excess_returns.mean() / downside_returns.std()) * (252 ** 0.5) 
+    
     # 2. Trades & Win Rate
     # trades list is already built
     total_trades = len(trades)
@@ -249,6 +265,8 @@ def run_backtest_simulation(df: pd.DataFrame, initial_capital: float = 100000, s
         "total_return_pct": round(((final_equity - initial_capital) / initial_capital) * 100, 2), # New Metric
         "cagr_percent": round(cagr, 2),
         "mdd_percent": round(mdd, 2),
+        "sharpe_ratio": round(sharpe, 2),
+        "sortino_ratio": round(sortino, 2),
         "win_rate": round(win_rate, 2),
         "total_trades": int(total_trades),
         "benchmark_cagr": round(benchmark_cagr, 2),
