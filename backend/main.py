@@ -90,6 +90,29 @@ async def simulate_strategy(symbol: str, strategy: str = 'ma_trend', capital: fl
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/simulate/options/{symbol}")
+async def simulate_options_strategy(symbol: str, period: str = "1y", initial_capital: float = 100000.0):
+    """
+    Simulate Options Volatility Strategy (Long Straddle vs Short Strangle)
+    based on HV regime.
+    """
+    try:
+        from core.options_engine import run_vol_backtest
+        
+        # 1. Fetch History
+        fetch_symbol = "0050.TW" if symbol == "MTX" else symbol
+        df = await fetch_price_history(fetch_symbol, period=period)
+        
+        # 2. Run Vol Backtest
+        result = run_vol_backtest(df, initial_capital=initial_capital)
+        result['symbol'] = symbol
+        return result
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- PORTFOLIO API ---
 
 class PositionRequest(BaseModel):

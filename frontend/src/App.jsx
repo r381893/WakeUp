@@ -20,6 +20,7 @@ import {
     Table
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import OptionsLab from './components/OptionsLab';
 
 // --- Black-Scholes Helper ---
 const calculateOptionPrice = (type, S, K, T, r, sigma) => {
@@ -74,6 +75,7 @@ function App() {
     // Data States
     const [monitorData, setMonitorData] = useState(null);
     const [labData, setLabData] = useState(null);
+    const [labMode, setLabMode] = useState('directional'); // 'directional' or 'options'
     const [portfolio, setPortfolio] = useState([]);
     const [optionsData, setOptionsData] = useState(null);
 
@@ -489,153 +491,174 @@ function App() {
                 {/* --- LAB TAB --- */}
                 {activeTab === 'lab' && (
                     <motion.div key="lab" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-card p-6 md:p-8 text-center">
-                        <h2 className="text-2xl font-bold text-white mb-6">Strategy Simulator</h2>
-                        <div className="flex flex-wrap justify-center gap-4 mb-8">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-400">Ticker:</span>
-                                <input type="text" className="w-20 bg-black/50 border border-white/20 rounded px-2 py-1 text-white uppercase" value={customSymbol} onChange={e => setCustomSymbol(e.target.value)} placeholder={selectedAsset} />
-                            </div>
-                            <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={strategy} onChange={e => setStrategy(e.target.value)}>
-                                <option value="ma_trend">MA Trend (趨勢交易)</option>
-                                <option value="ma_long">MA Long (只做多)</option>
-                                <option value="buy_hold">Buy & Hold (買入持有)</option>
-                            </select>
-                            <div className="flex items-center gap-1" title="Leverage">
-                                <span className="text-xs text-gray-400">x</span>
-                                <input type="number" step="0.5" min="1" max="5" className="w-12 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={leverage} onChange={e => setLeverage(e.target.value)} />
-                            </div>
-                            <div className="flex items-center gap-1" title="MA Period">
-                                <span className="text-xs text-gray-400">MA</span>
-                                <input type="number" className="w-16 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={maPeriod} onChange={e => setMaPeriod(e.target.value)} />
-                            </div>
-                            <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={period} onChange={e => setPeriod(e.target.value)}>
-                                <option value="1y">1Y</option>
-                                <option value="3y">3Y</option>
-                                <option value="5y">5Y</option>
-                                <option value="10y">10Y</option>
-                                <option value="max">MAX</option>
-                            </select>
-                            <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white hover:bg-blue-500 transition">Backtest</button>
+                        <div className="flex justify-center gap-4 mb-6">
+                            <button
+                                onClick={() => setLabMode('directional')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition ${labMode === 'directional' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                            >
+                                Directional Backtest
+                            </button>
+                            <button
+                                onClick={() => setLabMode('options')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition ${labMode === 'options' ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                            >
+                                Volatility Simulator (Options)
+                            </button>
                         </div>
 
-                        {loading ? <div className="animate-pulse text-blue-400">Processing simulation...</div> : labData && (
-                            <div className="space-y-6">
-                                {/* Summary Stats */}
-                                <div className="flex justify-between items-end mb-2 border-b border-white/10 pb-2">
-                                    <div className="text-left">
-                                        <div className="text-xs text-gray-400">回測區間 (Duration: {labData.duration_years} Years)</div>
-                                        <div className="text-sm font-bold text-white font-mono">{labData.period_start} ~ {labData.period_end}</div>
+                        {labMode === 'options' ? (
+                            <OptionsLab API_URL={API_URL} symbol={selectedAsset} />
+                        ) : (
+                            <>
+                                <h2 className="text-2xl font-bold text-white mb-6">Strategy Simulator</h2>
+                                <div className="flex flex-wrap justify-center gap-4 mb-8">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-400">Ticker:</span>
+                                        <input type="text" className="w-20 bg-black/50 border border-white/20 rounded px-2 py-1 text-white uppercase" value={customSymbol} onChange={e => setCustomSymbol(e.target.value)} placeholder={selectedAsset} />
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-xs text-gray-400">Total Return (累計報酬)</div>
-                                        <div className={`text-2xl font-bold font-mono ${labData.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {labData.total_return_pct > 0 ? '+' : ''}{labData.total_return_pct}%
-                                        </div>
+                                    <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={strategy} onChange={e => setStrategy(e.target.value)}>
+                                        <option value="ma_trend">MA Trend (趨勢交易)</option>
+                                        <option value="ma_long">MA Long (只做多)</option>
+                                        <option value="buy_hold">Buy & Hold (買入持有)</option>
+                                    </select>
+                                    <div className="flex items-center gap-1" title="Leverage">
+                                        <span className="text-xs text-gray-400">x</span>
+                                        <input type="number" step="0.5" min="1" max="5" className="w-12 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={leverage} onChange={e => setLeverage(e.target.value)} />
                                     </div>
+                                    <div className="flex items-center gap-1" title="MA Period">
+                                        <span className="text-xs text-gray-400">MA</span>
+                                        <input type="number" className="w-16 bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-center" value={maPeriod} onChange={e => setMaPeriod(e.target.value)} />
+                                    </div>
+                                    <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={period} onChange={e => setPeriod(e.target.value)}>
+                                        <option value="1y">1Y</option>
+                                        <option value="3y">3Y</option>
+                                        <option value="5y">5Y</option>
+                                        <option value="10y">10Y</option>
+                                        <option value="max">MAX</option>
+                                    </select>
+                                    <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white hover:bg-blue-500 transition">Backtest</button>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="資產每年的平均增長率 (含複利效果)">
-                                        <div className="text-gray-400 text-[10px] uppercase">年化報酬率 (CAGR)</div>
-                                        <div className="text-xl font-bold text-blue-400">{labData.cagr_percent}%</div>
-                                        <div className="text-[10px] text-gray-500">每年平均增長速度</div>
-                                    </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="帳戶資金從最高點滑落到最低點的幅度">
-                                        <div className="text-gray-400 text-[10px] uppercase">最大回撤 (MDD)</div>
-                                        <div className="text-xl font-bold text-red-400">{labData.mdd_percent}%</div>
-                                        <div className="text-[10px] text-gray-500">歷史最慘曾經賠多少</div>
-                                    </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="衡量每承受一單位總風險，能產生多少超額報酬 (越高越好)">
-                                        <div className="text-gray-400 text-[10px] uppercase">夏普值 (Sharpe)</div>
-                                        <div className="text-xl font-bold text-yellow-400">{labData.sharpe_ratio}</div>
-                                        <div className="text-[10px] text-gray-500">承擔每單位風險獲利</div>
-                                    </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="只考慮下跌風險的夏普值，對投資人更有參考價值 (越高越好)">
-                                        <div className="text-gray-400 text-[10px] uppercase">索提諾 (Sortino)</div>
-                                        <div className="text-xl font-bold text-yellow-400">{labData.sortino_ratio}</div>
-                                        <div className="text-[10px] text-gray-500">只看下跌風險的獲利</div>
-                                    </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="獲利交易次數佔總交易次數的比例">
-                                        <div className="text-gray-400 text-[10px] uppercase">勝率 (Win Rate)</div>
-                                        <div className="text-xl font-bold text-purple-400">{labData.win_rate}%</div>
-                                        <div className="text-[10px] text-gray-500">{labData.total_trades} 筆交易獲利佔比</div>
-                                    </div>
-                                </div>
+                                {loading ? <div className="animate-pulse text-blue-400">Processing simulation...</div> : labData && (
+                                    <div className="space-y-6">
+                                        {/* Summary Stats */}
+                                        <div className="flex justify-between items-end mb-2 border-b border-white/10 pb-2">
+                                            <div className="text-left">
+                                                <div className="text-xs text-gray-400">回測區間 (Duration: {labData.duration_years} Years)</div>
+                                                <div className="text-sm font-bold text-white font-mono">{labData.period_start} ~ {labData.period_end}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-xs text-gray-400">Total Return (累計報酬)</div>
+                                                <div className={`text-2xl font-bold font-mono ${labData.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {labData.total_return_pct > 0 ? '+' : ''}{labData.total_return_pct}%
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                {/* Complex Tables Grid */}
-                                <div className="grid md:grid-cols-2 gap-6 text-left">
-
-                                    {/* Yearly Stats */}
-                                    <div className="glass-card overflow-hidden">
-                                        <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
-                                            <span>年度績效 (Yearly Performance)</span>
-                                            <BarChart2 size={14} />
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="資產每年的平均增長率 (含複利效果)">
+                                                <div className="text-gray-400 text-[10px] uppercase">年化報酬率 (CAGR)</div>
+                                                <div className="text-xl font-bold text-blue-400">{labData.cagr_percent}%</div>
+                                                <div className="text-[10px] text-gray-500">每年平均增長速度</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="帳戶資金從最高點滑落到最低點的幅度">
+                                                <div className="text-gray-400 text-[10px] uppercase">最大回撤 (MDD)</div>
+                                                <div className="text-xl font-bold text-red-400">{labData.mdd_percent}%</div>
+                                                <div className="text-[10px] text-gray-500">歷史最慘曾經賠多少</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="衡量每承受一單位總風險，能產生多少超額報酬 (越高越好)">
+                                                <div className="text-gray-400 text-[10px] uppercase">夏普值 (Sharpe)</div>
+                                                <div className="text-xl font-bold text-yellow-400">{labData.sharpe_ratio}</div>
+                                                <div className="text-[10px] text-gray-500">承擔每單位風險獲利</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="只考慮下跌風險的夏普值，對投資人更有參考價值 (越高越好)">
+                                                <div className="text-gray-400 text-[10px] uppercase">索提諾 (Sortino)</div>
+                                                <div className="text-xl font-bold text-yellow-400">{labData.sortino_ratio}</div>
+                                                <div className="text-[10px] text-gray-500">只看下跌風險的獲利</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="獲利交易次數佔總交易次數的比例">
+                                                <div className="text-gray-400 text-[10px] uppercase">勝率 (Win Rate)</div>
+                                                <div className="text-xl font-bold text-purple-400">{labData.win_rate}%</div>
+                                                <div className="text-[10px] text-gray-500">{labData.total_trades} 筆交易獲利佔比</div>
+                                            </div>
                                         </div>
-                                        <div className="max-h-[300px] overflow-y-auto">
-                                            <table className="w-full text-xs">
-                                                <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
-                                                    <tr>
-                                                        <th className="p-2">Year</th>
-                                                        <th className="p-2 text-right">Return</th>
-                                                        <th className="p-2 text-right">MDD</th>
-                                                        <th className="p-2 text-right">Profit</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-white/5">
-                                                    {labData.yearly_stats?.map(stat => (
-                                                        <tr key={stat.year} className="hover:bg-white/5">
-                                                            <td className="p-2 font-mono text-gray-300">{stat.year}</td>
-                                                            <td className={`p-2 text-right font-bold ${stat.return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                                {stat.return_pct}%
-                                                            </td>
-                                                            <td className="p-2 text-right text-red-300">{stat.mdd_pct}%</td>
-                                                            <td className={`p-2 text-right font-mono ${stat.profit >= 0 ? 'text-gray-300' : 'text-gray-500'}`}>
-                                                                ${stat.profit.toLocaleString()}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+
+                                        {/* Complex Tables Grid */}
+                                        <div className="grid md:grid-cols-2 gap-6 text-left">
+
+                                            {/* Yearly Stats */}
+                                            <div className="glass-card overflow-hidden">
+                                                <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
+                                                    <span>年度績效 (Yearly Performance)</span>
+                                                    <BarChart2 size={14} />
+                                                </div>
+                                                <div className="max-h-[300px] overflow-y-auto">
+                                                    <table className="w-full text-xs">
+                                                        <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
+                                                            <tr>
+                                                                <th className="p-2">Year</th>
+                                                                <th className="p-2 text-right">Return</th>
+                                                                <th className="p-2 text-right">MDD</th>
+                                                                <th className="p-2 text-right">Profit</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-white/5">
+                                                            {labData.yearly_stats?.map(stat => (
+                                                                <tr key={stat.year} className="hover:bg-white/5">
+                                                                    <td className="p-2 font-mono text-gray-300">{stat.year}</td>
+                                                                    <td className={`p-2 text-right font-bold ${stat.return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                                        {stat.return_pct}%
+                                                                    </td>
+                                                                    <td className="p-2 text-right text-red-300">{stat.mdd_pct}%</td>
+                                                                    <td className={`p-2 text-right font-mono ${stat.profit >= 0 ? 'text-gray-300' : 'text-gray-500'}`}>
+                                                                        ${stat.profit.toLocaleString()}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            {/* Trade Logs */}
+                                            <div className="glass-card overflow-hidden">
+                                                <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
+                                                    <span>交易歷史 (Trade History)</span>
+                                                    <RotateCcw size={14} />
+                                                </div>
+                                                <div className="max-h-[300px] overflow-y-auto">
+                                                    <table className="w-full text-xs">
+                                                        <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
+                                                            <tr>
+                                                                <th className="p-2">Date</th>
+                                                                <th className="p-2">Type</th>
+                                                                <th className="p-2 text-right">Price</th>
+                                                                <th className="p-2 text-right">PnL</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-white/5">
+                                                            {labData.trade_list?.map((trade, i) => (
+                                                                <tr key={i} className="hover:bg-white/5">
+                                                                    <td className="p-2 font-mono text-gray-400">{trade.entry_date}</td>
+                                                                    <td className="p-2">
+                                                                        <span className={`px-1.5 py-0.5 rounded ${trade.type === 'LONG' ? 'bg-green-900/40 text-green-400' : 'bg-red-900/40 text-red-400'}`}>
+                                                                            {trade.type}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="p-2 text-right font-mono text-gray-300">{trade.entry_price}</td>
+                                                                    <td className={`p-2 text-right font-bold ${trade.pnl_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                                        {trade.pnl_pct}%
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Trade Logs */}
-                                    <div className="glass-card overflow-hidden">
-                                        <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
-                                            <span>交易歷史 (Trade History)</span>
-                                            <RotateCcw size={14} />
-                                        </div>
-                                        <div className="max-h-[300px] overflow-y-auto">
-                                            <table className="w-full text-xs">
-                                                <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
-                                                    <tr>
-                                                        <th className="p-2">Date</th>
-                                                        <th className="p-2">Type</th>
-                                                        <th className="p-2 text-right">Price</th>
-                                                        <th className="p-2 text-right">PnL</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-white/5">
-                                                    {labData.trade_list?.map((trade, i) => (
-                                                        <tr key={i} className="hover:bg-white/5">
-                                                            <td className="p-2 font-mono text-gray-400">{trade.entry_date}</td>
-                                                            <td className="p-2">
-                                                                <span className={`px-1.5 py-0.5 rounded ${trade.type === 'LONG' ? 'bg-green-900/40 text-green-400' : 'bg-red-900/40 text-red-400'}`}>
-                                                                    {trade.type}
-                                                                </span>
-                                                            </td>
-                                                            <td className="p-2 text-right font-mono text-gray-300">{trade.entry_price}</td>
-                                                            <td className={`p-2 text-right font-bold ${trade.pnl_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                                {trade.pnl_pct}%
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                )}
+                            </>
                         )}
                     </motion.div>
                 )}
