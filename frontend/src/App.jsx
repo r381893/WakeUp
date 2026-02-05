@@ -535,30 +535,30 @@ function App() {
                                 </div>
 
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-gray-400 text-[10px] uppercase">CAGR (Annual Return)</div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="資產每年的平均增長率 (含複利效果)">
+                                        <div className="text-gray-400 text-[10px] uppercase">年化報酬率 (CAGR)</div>
                                         <div className="text-xl font-bold text-blue-400">{labData.cagr_percent}%</div>
-                                        <div className="text-[10px] text-gray-500">Benchmark: {labData.benchmark_cagr}%</div>
+                                        <div className="text-[10px] text-gray-500">每年平均增長速度</div>
                                     </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-gray-400 text-[10px] uppercase">Max Drawdown</div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="帳戶資金從最高點滑落到最低點的幅度">
+                                        <div className="text-gray-400 text-[10px] uppercase">最大回撤 (MDD)</div>
                                         <div className="text-xl font-bold text-red-400">{labData.mdd_percent}%</div>
-                                        <div className="text-[10px] text-gray-500">Benchmark: {labData.benchmark_mdd}%</div>
+                                        <div className="text-[10px] text-gray-500">歷史最慘曾經賠多少</div>
                                     </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-gray-400 text-[10px] uppercase">Sharpe Ratio</div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="衡量每承受一單位總風險，能產生多少超額報酬 (越高越好)">
+                                        <div className="text-gray-400 text-[10px] uppercase">夏普值 (Sharpe)</div>
                                         <div className="text-xl font-bold text-yellow-400">{labData.sharpe_ratio}</div>
-                                        <div className="text-[10px] text-gray-500">Risk-Adj Return</div>
+                                        <div className="text-[10px] text-gray-500">承擔每單位風險獲利</div>
                                     </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-gray-400 text-[10px] uppercase">Sortino Ratio</div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="只考慮下跌風險的夏普值，對投資人更有參考價值 (越高越好)">
+                                        <div className="text-gray-400 text-[10px] uppercase">索提諾 (Sortino)</div>
                                         <div className="text-xl font-bold text-yellow-400">{labData.sortino_ratio}</div>
-                                        <div className="text-[10px] text-gray-500">Downside Risk</div>
+                                        <div className="text-[10px] text-gray-500">只看下跌風險的獲利</div>
                                     </div>
-                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="text-gray-400 text-[10px] uppercase">Win Rate</div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-white/10 group relative" title="獲利交易次數佔總交易次數的比例">
+                                        <div className="text-gray-400 text-[10px] uppercase">勝率 (Win Rate)</div>
                                         <div className="text-xl font-bold text-purple-400">{labData.win_rate}%</div>
-                                        <div className="text-[10px] text-gray-500">{labData.total_trades} Trades</div>
+                                        <div className="text-[10px] text-gray-500">{labData.total_trades} 筆交易獲利佔比</div>
                                     </div>
                                 </div>
 
