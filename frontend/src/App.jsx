@@ -205,7 +205,7 @@ function App() {
             setLoading(true);
             setLabData(null);
             const targetSymbol = customSymbol.trim() || selectedAsset;
-            const res = await fetch(`${API_URL}/api/simulate/${targetSymbol}?strategy=${strategy}&ma_period=${maPeriod}&leverage=${leverage}&t=${Date.now()}`);
+            const res = await fetch(`${API_URL}/api/simulate/${targetSymbol}?strategy=${strategy}&ma_period=${maPeriod}&leverage=${leverage}&period=${period}&t=${Date.now()}`);
             if (!res.ok) throw new Error("Simulation Failed");
             const json = await res.json();
             setLabData(json);
