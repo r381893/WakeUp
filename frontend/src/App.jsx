@@ -490,10 +490,10 @@ function App() {
                 {/* --- LAB TAB --- */}
                 {activeTab === 'lab' && (
                     <motion.div key="lab" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-card p-6 md:p-8 text-center">
-                        <h2 className="text-2xl font-bold text-white mb-6">Strategy Simulator</h2>
+                        <h2 className="text-2xl font-bold text-white mb-6">策略回測模擬器</h2>
                         <div className="flex flex-wrap justify-center gap-4 mb-8">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-400">Ticker:</span>
+                                <span className="text-xs text-gray-400">標的:</span>
                                 <input type="text" className="w-20 bg-black/50 border border-white/20 rounded px-2 py-1 text-white uppercase" value={customSymbol} onChange={e => setCustomSymbol(e.target.value)} placeholder={selectedAsset} />
                             </div>
                             <select className="bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white" value={strategy} onChange={e => setStrategy(e.target.value)}>
@@ -516,10 +516,10 @@ function App() {
                                 <option value="10y">10Y</option>
                                 <option value="max">MAX</option>
                             </select>
-                            <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white hover:bg-blue-500 transition">Backtest</button>
+                            <button onClick={fetchLabData} className="px-6 py-1 bg-blue-600 rounded-lg text-xs font-bold text-white hover:bg-blue-500 transition">開始回測</button>
                         </div>
 
-                        {loading ? <div className="animate-pulse text-blue-400">Processing simulation...</div> : labData && (
+                        {loading ? <div className="animate-pulse text-blue-400">模擬計算中...</div> : labData && (
                             <div className="space-y-6">
                                 {/* Summary Stats */}
                                 <div className="flex justify-between items-end mb-2 border-b border-white/10 pb-2">
@@ -603,17 +603,17 @@ function App() {
                                     {/* Trade Logs */}
                                     <div className="glass-card overflow-hidden">
                                         <div className="bg-white/5 p-3 text-xs font-bold text-gray-300 uppercase flex items-center justify-between">
-                                            <span>交易歷史 (Trade History)</span>
+                                            <span>交易歷史</span>
                                             <RotateCcw size={14} />
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto">
                                             <table className="w-full text-xs">
                                                 <thead className="text-gray-500 sticky top-0 bg-[#0f0f13]">
                                                     <tr>
-                                                        <th className="p-2">Date</th>
-                                                        <th className="p-2">Type</th>
-                                                        <th className="p-2 text-right">Price</th>
-                                                        <th className="p-2 text-right">PnL</th>
+                                                        <th className="p-2">日期</th>
+                                                        <th className="p-2">方向</th>
+                                                        <th className="p-2 text-right">價格</th>
+                                                        <th className="p-2 text-right">損益</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
@@ -651,7 +651,7 @@ function App() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Hedge Tool */}
                             <div className="glass-card p-6">
-                                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Shield className="text-purple-400" /> Hedge Advisor</h3>
+                                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Shield className="text-purple-400" /> 避險建議</h3>
                                 {portfolio.some(p => p.symbol === '00631L') ? (
                                     <div className="space-y-4">
                                         {portfolio.filter(p => p.symbol === '00631L').map(p => {
@@ -659,24 +659,24 @@ function App() {
                                             const reqMtx = (p.market_value / (mtxPrice * 50)) * 2;
                                             return (
                                                 <div key={p.id} className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                                    <div className="flex justify-between text-xs mb-1"><span className="text-gray-400">Current Position (00631L)</span> <span className="text-purple-400 font-bold">Delta Neutral</span></div>
-                                                    <div className="text-2xl font-bold text-white">{reqMtx.toFixed(2)} <span className="text-xs text-gray-400">Contracts (MTX)</span></div>
-                                                    <p className="text-[10px] text-gray-500 mt-2">Short ~{Math.round(reqMtx)} MTX to hedge this position against market crashes.</p>
+                                                    <div className="flex justify-between text-xs mb-1"><span className="text-gray-400">目前持倉 (00631L)</span> <span className="text-purple-400 font-bold">Delta 對沖</span></div>
+                                                    <div className="text-2xl font-bold text-white">{reqMtx.toFixed(2)} <span className="text-xs text-gray-400">口 (小台)</span></div>
+                                                    <p className="text-[10px] text-gray-500 mt-2">空 ~{Math.round(reqMtx)} 口小台可對沖此持倉的大盤下跌風險</p>
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                ) : <div className="text-center py-6 text-gray-600 italic text-sm">No 00631L positions in portfolio.</div>}
+                                ) : <div className="text-center py-6 text-gray-600 italic text-sm">投資組合中沒有 00631L 持倉</div>}
                             </div>
 
                             {/* Rebalance Tool */}
                             <div className="glass-card p-6">
-                                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Zap className="text-yellow-400" /> Smart Rebalance (80/20)</h3>
+                                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Zap className="text-yellow-400" /> 智慧再平衡 (80/20)</h3>
                                 <div className="space-y-4">
-                                    <div className="flex justify-between text-sm"><span className="text-gray-400">Net Worth</span> <span className="text-white font-bold">${portfolio.reduce((s, p) => s + (p.market_value || 0), 0).toLocaleString()}</span></div>
+                                    <div className="flex justify-between text-sm"><span className="text-gray-400">總淨值</span> <span className="text-white font-bold">${portfolio.reduce((s, p) => s + (p.market_value || 0), 0).toLocaleString()}</span></div>
                                     <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                                         <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden mb-2"><div className="bg-blue-500 h-full" style={{ width: '80%' }}></div></div>
-                                        <div className="flex justify-between text-[10px] text-gray-500"><span>EQUITY (Target 80%)</span><span>CASH (Target 20%)</span></div>
+                                        <div className="flex justify-between text-[10px] text-gray-500"><span>股票 (目標 80%)</span><span>現金 (目標 20%)</span></div>
                                     </div>
                                     <button
                                         onClick={() => {

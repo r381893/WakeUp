@@ -63,12 +63,12 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
         <div className="glass-card p-6 border-red-500/30 bg-red-900/10">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <AlertTriangle className="text-red-500" />
-                Stress Test (資產壓力測試)
+                資產壓力測試
             </h3>
 
             <div className="mb-6">
                 <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-400">Market Scenario (大盤漲跌點數)</span>
+                    <span className="text-gray-400">模擬情境 (漲跌點數)</span>
                     <span className={`font-bold ${marketChange > 0 ? 'text-green-400' : marketChange < 0 ? 'text-red-400' : 'text-gray-200'}`}>
                         {marketChange > 0 ? '+' : ''}{marketChange} 點
                     </span>
@@ -83,9 +83,9 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
                     className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
                 <div className="flex justify-between text-[10px] text-gray-500 mt-1">
-                    <span>CRASH (-2000)</span>
-                    <span>FLAT (0)</span>
-                    <span>BOOM (+2000)</span>
+                    <span>崩盤 (-2000)</span>
+                    <span>持平 (0)</span>
+                    <span>狂漲 (+2000)</span>
                 </div>
 
                 {/* Historical Scenarios */}
@@ -104,19 +104,19 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
 
             <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="p-4 bg-black/40 rounded-xl border border-white/10">
-                    <div className="text-xs text-gray-400 uppercase">Simulated PnL</div>
+                    <div className="text-xs text-gray-400 uppercase">模擬損益</div>
                     <div className={`text-2xl font-bold flex items-center gap-2 ${simulatedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {simulatedPnL >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                         ${Math.round(simulatedPnL).toLocaleString()}
                     </div>
                 </div>
                 <div className="p-4 bg-black/40 rounded-xl border border-white/10">
-                    <div className="text-xs text-gray-400 uppercase">Final Net Worth</div>
+                    <div className="text-xs text-gray-400 uppercase">模擬後淨值</div>
                     <div className="text-2xl font-bold text-white">
                         ${Math.round(simulatedNetWorth).toLocaleString()}
                     </div>
                     <div className="text-xs text-gray-500">
-                        Current: ${Math.round(currentNetWorth).toLocaleString()}
+                        目前: ${Math.round(currentNetWorth).toLocaleString()}
                     </div>
                 </div>
             </div>
@@ -126,12 +126,12 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
                 <table className="w-full text-xs text-left">
                     <thead className="bg-white/5 text-gray-400 uppercase">
                         <tr>
-                            <th className="p-2">Asset</th>
-                            <th className="p-2 text-right">Shares</th>
-                            <th className="p-2 text-right">Price</th>
-                            <th className="p-2 text-right">Value</th>
-                            <th className="p-2 text-center">Factor</th>
-                            <th className="p-2 text-right">Est. Impact</th>
+                            <th className="p-2">資產</th>
+                            <th className="p-2 text-right">持倉</th>
+                            <th className="p-2 text-right">現價</th>
+                            <th className="p-2 text-right">市值</th>
+                            <th className="p-2 text-center">係數</th>
+                            <th className="p-2 text-right">預估影響</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -154,8 +154,8 @@ const StressTest = ({ portfolio, indexPrice = 23000 }) => {
             </div>
 
             <div className="mt-4 text-[10px] text-gray-500 italic text-center opacity-70">
-                * Calculation based on Index Base: {INDEX_PRICE}.
-                00631L assumed 2x leverage.
+                * 計算基準大盤指數: {INDEX_PRICE}。
+                00631L 假設 2 倍槓桿。
             </div>
         </div>
     );
