@@ -606,7 +606,7 @@ function App() {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
-                                                    {labData.trade_list?.slice(0, 50).map((trade, i) => (
+                                                    {labData.trade_list?.map((trade, i) => (
                                                         <tr key={i} className="hover:bg-white/5">
                                                             <td className="p-2 font-mono text-gray-400">{trade.entry_date}</td>
                                                             <td className="p-2">
