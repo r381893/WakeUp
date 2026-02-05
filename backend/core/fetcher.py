@@ -132,12 +132,12 @@ async def fetch_history_internal(symbol: str, period: str = "1y") -> pd.DataFram
 
     try:
         data = yf.Ticker(ticker)
-        df = data.history(period=period)
+        df = data.history(period=period, auto_adjust=False)
         
         if df.empty:
             print(f"⚠️ Empty data, retrying {ticker}...")
             data = yf.Ticker(ticker)
-            df = data.history(period=period)
+            df = data.history(period=period, auto_adjust=False)
         
         if df.empty:
              raise ValueError(f"No data found for {ticker}")
