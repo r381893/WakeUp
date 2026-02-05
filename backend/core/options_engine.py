@@ -12,20 +12,27 @@ def cnd(x):
 def calculate_bs_price(S, K, T, r, sigma, option_type="call"):
     """
     Calculate Option Price (Call or Put)
+    Safeguarded against math domain errors.
     """
-    if T <= 0 or sigma <= 0: 
-        if option_type == "call": return max(0, S - K)
-        else: return max(0, K - S)
-    
-    d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
-    d2 = d1 - sigma * math.sqrt(T)
-    
-    if option_type == "call":
-        price = S * cnd(d1) - K * math.exp(-r * T) * cnd(d2)
-    else:
-        price = K * math.exp(-r * T) * cnd(-d2) - S * cnd(-d1)
+    try:
+        if S <= 0 or K <= 0: return 0.0
+        if T <= 0 or sigma <= 0: 
+            if option_type == "call": return max(0.0, S - K)
+            else: return max(0.0, K - S)
         
-    return max(0, price)
+        d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+        d2 = d1 - sigma * math.sqrt(T)
+        
+        if option_type == "call":
+            price = S * cnd(d1) - K * math.exp(-r * T) * cnd(d2)
+        else:
+            price = K * math.exp(-r * T) * cnd(-d2) - S * cnd(-d1)
+            
+        return max(0.0, price)
+    except ValueError:
+        return 0.0
+    except Exception:
+        return 0.0
 
 def run_vol_backtest(df: pd.DataFrame, initial_capital: float = 100000, strategy_days: int = 7) -> dict:
     """
